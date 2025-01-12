@@ -1,0 +1,14 @@
+{
+  "name": "roadmapsh-task-tracker",
+  "version": "1.0.0",
+  "description": "https://roadmap.sh/projects/task-tracker",
+  "author": "",
+  "license": "ISC",
+  "main": "task-cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "task-cli": "./task-cli.js"
+  }
+}
