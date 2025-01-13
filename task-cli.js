@@ -88,6 +88,25 @@ function listTasks(filter = { status: undefined }) {
   console.log(filteredTasks);
 }
 
+function help() {
+  console.log('Usage: task-cli <command> [options]')
+  console.log('Commands:')
+  console.group();
+  console.log('add <description>\t\tAdd task');
+  console.log('update <id> <description>\tUpdate task description');
+  console.log('delete <id>\t\t\tDelete task');
+  console.log('mark-todo <id>\t\tMark task with todo status');
+  console.log('mark-in-progress <id>\t\tMark task with in-progress status');
+  console.log('mark-done <id>\t\tMark task with done status');
+  console.log('list\t\t\t\tList all tasks');
+  console.group();
+  console.log('list todo\t\t\tList all tasks with todo status');
+  console.log('list in-progress\t\tList all tasks with in-progress status');
+  console.log('list done\t\t\tList all tasks with done status');
+  console.groupEnd();
+  console.groupEnd();
+}
+
 function main() {
   try {
     // Load tasks into memory
@@ -123,8 +142,10 @@ function main() {
       deleteTask(id);
     } else if (command === 'list') {
       listTasks({ status: commandArgs[0] });
+    } else if (command === 'help') {
+      help();
     } else {
-      throw new Error(`Command not found: ${command}`);
+      throw new Error(`Command not found: ${command}. Use "help" for a list of commands.`);
     }
   } catch (error) {
     console.log(error.message);
