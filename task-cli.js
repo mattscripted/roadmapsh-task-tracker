@@ -5,7 +5,8 @@ const path = require('path');
 
 const state = {
   nextTaskId: 0,
-  allTasks: [],
+  // allTasks: [],
+  tasksById: {},
 };
 
 function loadOrCreateFile(filePath, defaultContent = '') {
@@ -21,9 +22,9 @@ function loadOrCreateTasks() {
   const filePath = path.join(__dirname, 'tasks.json');
   const fileContent = loadOrCreateFile(filePath, JSON.stringify(state));
 
-  const { nextTaskId, allTasks } = JSON.parse(fileContent);
+  const { nextTaskId, tasksById } = JSON.parse(fileContent);
   state.nextTaskId = nextTaskId;
-  state.allTasks = allTasks;
+  state.tasksById = tasksById;
 }
 
 function saveTasks() {
@@ -33,17 +34,20 @@ function saveTasks() {
 }
 
 function addTask({ description }) {
+  const { nextTaskId: id } = state;
   const createdAt = new Date();
-  state.allTasks.push({
-    id: state.nextTaskId,
+  state.tasksById[id] = {
+    id,
     description,
     status: 'todo',
     createdAt,
     updatedAt: createdAt,
-  });
+  };
+  
   state.nextTaskId++;
-
   saveTasks();
+
+  console.log(`Created new task with id = ${id}`);
 }
 
 function updateTask(id, changes = { description: undefined, status: undefined }) {
@@ -51,7 +55,11 @@ function updateTask(id, changes = { description: undefined, status: undefined })
 }
 
 function deleteTask(id) {
-  console.log('TODO: delete task', id);
+  // TODO: What if the task does not exist?
+  delete state.tasksById[id];
+  saveTasks();
+
+  console.log(`Deleted task with id = ${id}`);
 }
 
 function listTasks(filter = { status: undefined }) {
