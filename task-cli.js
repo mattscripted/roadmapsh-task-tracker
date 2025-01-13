@@ -33,6 +33,10 @@ function saveTasks() {
 }
 
 function addTask({ description }) {
+  if (!description) {
+    throw new Error(`Unable to add task (missing description).`);
+  }
+
   const { nextTaskId: id } = state;
   const createdAt = new Date();
   state.tasksById[id] = {
@@ -46,11 +50,14 @@ function addTask({ description }) {
   state.nextTaskId++;
   saveTasks();
 
-  console.log(`Added task with id = ${id}`);
+  console.log(`Successfully added task (id: ${id}).`);
 }
 
 function updateTask(id, changes) {
-  // TODO: What if the task does not exist?
+  if (!Object.hasOwn(state.tasksById, id)) {
+    throw new Error(`Unable to update task (id: ${id} not found).`);
+  }
+
   state.tasksById[id] = {
     ...state.tasksById[id],
     ...changes,
@@ -58,15 +65,18 @@ function updateTask(id, changes) {
   }
   saveTasks();
 
-  console.log(`Updated task with id = ${id}`);
+  console.log(`Successfully updated task (id: ${id}).`);
 }
 
 function deleteTask(id) {
-  // TODO: What if the task does not exist?
+  if (!Object.hasOwn(state.tasksById, id)) {
+    throw new Error(`Unable to delete task (id: ${id} not found).`);
+  }
+
   delete state.tasksById[id];
   saveTasks();
 
-  console.log(`Deleted task with id = ${id}`);
+  console.log(`Successfully deleted task (id: ${id}).`);
 }
 
 function listTasks(filter = { status: undefined }) {
@@ -79,42 +89,46 @@ function listTasks(filter = { status: undefined }) {
 }
 
 function main() {
-  // Load tasks into memory
-  loadOrCreateTasks();
-
-  // Get arguments
-  const args = process.argv.slice(2);
-  const command = args[0];
-  const commandArgs = args.slice(1);
-
-  // Call command
-  if (command === 'add') {
-    addTask({ description: commandArgs[0] })
-  } else if (command === 'update') {
-    // Update description
-    const id = commandArgs[0];
-    updateTask(id, { description: commandArgs[1] });
-  } else if (command === 'mark-todo') {
-    // Update status
-    const id = commandArgs[0];
-    updateTask(id, { status: 'todo' });
-  } else if (command === 'mark-in-progress') {
-    // Update status
-    const id = commandArgs[0];
-    updateTask(id, { status: 'in-progress' });
-  } else if (command === 'mark-done') {
-    // Update status
-    const id = commandArgs[0];
-    updateTask(id, { status: 'done' });
-  } else if (command === 'delete') {
-    // Update status
-    const id = commandArgs[0];
-    deleteTask(id);
-  } else if (command === 'list') {
-    listTasks({ status: commandArgs[0] });
+  try {
+    // Load tasks into memory
+    loadOrCreateTasks();
+  
+    // Get arguments
+    const args = process.argv.slice(2);
+    const command = args[0];
+    const commandArgs = args.slice(1);
+  
+    // Call command
+    if (command === 'add') {
+      addTask({ description: commandArgs[0] })
+    } else if (command === 'update') {
+      // Update description
+      const id = commandArgs[0];
+      updateTask(id, { description: commandArgs[1] });
+    } else if (command === 'mark-todo') {
+      // Update status
+      const id = commandArgs[0];
+      updateTask(id, { status: 'todo' });
+    } else if (command === 'mark-in-progress') {
+      // Update status
+      const id = commandArgs[0];
+      updateTask(id, { status: 'in-progress' });
+    } else if (command === 'mark-done') {
+      // Update status
+      const id = commandArgs[0];
+      updateTask(id, { status: 'done' });
+    } else if (command === 'delete') {
+      // Update status
+      const id = commandArgs[0];
+      deleteTask(id);
+    } else if (command === 'list') {
+      listTasks({ status: commandArgs[0] });
+    } else {
+      throw new Error(`Command not found: ${command}`);
+    }
+  } catch (error) {
+    console.log(error.message);
   }
-
-  // TODO: Handle invalid commands
 }
 
 main();
