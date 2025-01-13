@@ -33,7 +33,7 @@ function saveTasks() {
   fs.writeFileSync(filePath, JSON.stringify(state), 'utf8');
 }
 
-function addTask({ description }) {
+function addTask({ description } = {}) {
   const { nextTaskId: id } = state;
   const createdAt = new Date();
   state.tasksById[id] = {
@@ -47,11 +47,20 @@ function addTask({ description }) {
   state.nextTaskId++;
   saveTasks();
 
-  console.log(`Created new task with id = ${id}`);
+  console.log(`Added task with id = ${id}`);
 }
 
-function updateTask(id, changes = { description: undefined, status: undefined }) {
-  console.log('TODO: update task', id, changes);
+function updateTask(id, { description, status } = {}) {
+  // TODO: What if the task does not exist?
+  state.tasksById[id] = {
+    ...state.tasksById[id],
+    description,
+    status,
+    updatedAt: new Date(),
+  }
+  saveTasks();
+
+  console.log(`Updated task with id = ${id}`);
 }
 
 function deleteTask(id) {
