@@ -4,7 +4,7 @@ https://roadmap.sh/projects/task-tracker
 Track and manage tasks via CLI:
 - Add, update, and delete tasks
 - Mark a task as todo, in progress, or done
-- List all tasks with optional filter (todo, in progress, done)
+- List all tasks with optional status filter (todo, in progress, done)
 
 Constraints:
 - Store tasks in a JSON file
@@ -13,9 +13,8 @@ Constraints:
 
 For example:
 ```sh
-# Add a task
+# Add a task (outputs task id for reference)
 task-cli add "Buy groceries"
-# Outut: Task added with id = 1
 
 # Update a task description
 task-cli update 1 "Buy groceries and cook dinner"
