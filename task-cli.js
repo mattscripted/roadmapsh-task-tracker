@@ -14,10 +14,11 @@ const TASK_STATUS = {
 const DEFAULT_TASK_STATUS = TASK_STATUS.TODO;
 
 // state is essentially a database table of tasks with an auto-increment id
-const state = {
+const INITIAL_STATE = {
   nextTaskId: 1,
   tasksById: {},
-};
+}
+let state = { ...INITIAL_STATE };
 
 function loadOrCreateFile(filePath, defaultContent = '') {
   // Create file, if it does not yet exist
@@ -28,8 +29,8 @@ function loadOrCreateFile(filePath, defaultContent = '') {
   return fs.readFileSync(filePath, FILE_ENCODING);
 }
 
-function loadOrCreateTasks() {
-  const tasksFileContent = loadOrCreateFile(TASKS_FILE_PATH, JSON.stringify(state));
+function loadOrCreateAllTasks() {
+  const tasksFileContent = loadOrCreateFile(TASKS_FILE_PATH, JSON.stringify(INITIAL_STATE));
 
   // Update in-memory state from file contents
   const { nextTaskId, tasksById } = JSON.parse(tasksFileContent);
@@ -37,9 +38,15 @@ function loadOrCreateTasks() {
   state.tasksById = tasksById;
 }
 
-function saveTasks() {
+function saveAllTasks() {
   // Save in-memory state to file, so it can be read later
   fs.writeFileSync(TASKS_FILE_PATH, JSON.stringify(state), FILE_ENCODING);
+}
+
+function resetAllTasks() {
+  // Reset state in memory and in file
+  state = { ...INITIAL_STATE };
+  fs.unlinkSync(TASKS_FILE_PATH);
 }
 
 function addTask({ description }) {
@@ -61,7 +68,7 @@ function addTask({ description }) {
   
   // Update auto-increment, and save tasks to file
   state.nextTaskId++;
-  saveTasks();
+  saveAllTasks();
 
   console.log(`Successfully added task (id: ${id}).`);
 }
@@ -78,7 +85,7 @@ function updateTask(id, changes) {
     ...changes,
     updatedAt: new Date(),
   }
-  saveTasks();
+  saveAllTasks();
 
   console.log(`Successfully updated task (id: ${id}).`);
 }
@@ -91,7 +98,7 @@ function deleteTask(id) {
 
   // Delete task, and save to file
   delete state.tasksById[id];
-  saveTasks();
+  saveAllTasks();
 
   console.log(`Successfully deleted task (id: ${id}).`);
 }
@@ -126,6 +133,7 @@ function help() {
   console.log('list in-progress\t\tList all tasks with in-progress status');
   console.log('list done\t\t\tList all tasks with done status');
   console.groupEnd();
+  console.log('reset\t\t\t\tDelete all tasks, and reset auto-increment')
   console.groupEnd();
 }
 
@@ -138,6 +146,7 @@ function executeCommand(command, args) {
     'mark-in-progress': () => updateTask(args[0], { status: TASK_STATUS.IN_PROGRESS }),
     'mark-done': () => updateTask(args[0], { status: TASK_STATUS.DONE }),
     list: () => listTasks({ status: args[0] }),
+    reset: () => resetAllTasks(),
     help: () => help(),
   };
 
@@ -152,7 +161,7 @@ function executeCommand(command, args) {
 function main() {
   try {
     // Load tasks from file into memory
-    loadOrCreateTasks();
+    loadOrCreateAllTasks();
   
     // Execute command with command arguments
     const args = process.argv.slice(2);
