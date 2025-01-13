@@ -3,33 +3,39 @@
 const fs = require('fs');
 const path = require('path');
 
+const FILE_ENCODING = 'utf8';
+const TASKS_FILE_PATH = path.join(__dirname, 'tasks.json');
+const TASK_STATUS = {
+  TODO: 'todo',
+  IN_PROGRESS: 'in-progress',
+  DONE: 'done'
+}
+const DEFAULT_TASK_STATUS = TASK_STATUS.TODO;
+
 const state = {
   nextTaskId: 1,
   tasksById: {},
 };
 
 function loadOrCreateFile(filePath, defaultContent = '') {
-  // Create file if it does not yet exist
+  // Create file, if it does not yet exist
   if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, defaultContent, 'utf8');
+    fs.writeFileSync(filePath, defaultContent, FILE_ENCODING);
   }
 
-  return fs.readFileSync(filePath, 'utf8');
+  return fs.readFileSync(filePath, FILE_ENCODING);
 }
 
 function loadOrCreateTasks() {
-  const filePath = path.join(__dirname, 'tasks.json');
-  const fileContent = loadOrCreateFile(filePath, JSON.stringify(state));
+  const tasksFileContent = loadOrCreateFile(TASKS_FILE_PATH, JSON.stringify(state));
 
-  const { nextTaskId, tasksById } = JSON.parse(fileContent);
+  const { nextTaskId, tasksById } = JSON.parse(tasksFileContent);
   state.nextTaskId = nextTaskId;
   state.tasksById = tasksById;
 }
 
 function saveTasks() {
-  // TODO: Reuse constant
-  const filePath = path.join(__dirname, 'tasks.json');
-  fs.writeFileSync(filePath, JSON.stringify(state), 'utf8');
+  fs.writeFileSync(TASKS_FILE_PATH, JSON.stringify(state), FILE_ENCODING);
 }
 
 function addTask({ description }) {
@@ -42,7 +48,7 @@ function addTask({ description }) {
   state.tasksById[id] = {
     id,
     description,
-    status: 'todo',
+    status: DEFAULT_TASK_STATUS,
     createdAt,
     updatedAt: createdAt,
   };
@@ -127,15 +133,15 @@ function main() {
     } else if (command === 'mark-todo') {
       // Update status
       const id = commandArgs[0];
-      updateTask(id, { status: 'todo' });
+      updateTask(id, { status: TASK_STATUS.TODO });
     } else if (command === 'mark-in-progress') {
       // Update status
       const id = commandArgs[0];
-      updateTask(id, { status: 'in-progress' });
+      updateTask(id, { status: TASK_STATUS.IN_PROGRESS });
     } else if (command === 'mark-done') {
       // Update status
       const id = commandArgs[0];
-      updateTask(id, { status: 'done' });
+      updateTask(id, { status: TASK_STATUS.DONE });
     } else if (command === 'delete') {
       // Update status
       const id = commandArgs[0];
