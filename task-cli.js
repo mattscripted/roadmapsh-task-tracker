@@ -4,8 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const state = {
-  nextTaskId: 0,
-  // allTasks: [],
+  nextTaskId: 1,
   tasksById: {},
 };
 
@@ -33,7 +32,7 @@ function saveTasks() {
   fs.writeFileSync(filePath, JSON.stringify(state), 'utf8');
 }
 
-function addTask({ description } = {}) {
+function addTask({ description }) {
   const { nextTaskId: id } = state;
   const createdAt = new Date();
   state.tasksById[id] = {
@@ -50,12 +49,11 @@ function addTask({ description } = {}) {
   console.log(`Added task with id = ${id}`);
 }
 
-function updateTask(id, { description, status } = {}) {
+function updateTask(id, changes) {
   // TODO: What if the task does not exist?
   state.tasksById[id] = {
     ...state.tasksById[id],
-    description,
-    status,
+    ...changes,
     updatedAt: new Date(),
   }
   saveTasks();
@@ -72,7 +70,12 @@ function deleteTask(id) {
 }
 
 function listTasks(filter = { status: undefined }) {
-  console.log('TODO: filter', filter);
+  const tasks = Object.values(state.tasksById);
+  const filteredTasks = filter.status
+    ? tasks.filter(task => task.status === filter.status)
+    : tasks;
+
+  console.log(filteredTasks);
 }
 
 function main() {
