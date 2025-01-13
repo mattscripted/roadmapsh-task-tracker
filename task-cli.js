@@ -129,50 +129,36 @@ function help() {
   console.groupEnd();
 }
 
+function executeCommand(command, args) {
+  const commands = {
+    add: () => addTask({ description: args[0] }),
+    update: () => updateTask(args[0], { description: args[1] }),
+    delete: () => deleteTask(args[0]),
+    'mark-todo': () => updateTask(args[0], { status: TASK_STATUS.TODO }),
+    'mark-in-progress': () => updateTask(args[0], { status: TASK_STATUS.IN_PROGRESS }),
+    'mark-done': () => updateTask(args[0], { status: TASK_STATUS.DONE }),
+    list: () => listTasks({ status: args[0] }),
+    help: () => help(),
+  };
+
+  // Call command if found, otherwise throw an error
+  if (Object.hasOwn(commands, command)) {
+    commands[command]();
+  } else {
+    throw new Error(`Command not found: ${command}. Use "help" for a list of commands.`);
+  }
+}
+
 function main() {
   try {
     // Load tasks from file into memory
     loadOrCreateTasks();
   
-    // Get arguments
+    // Execute command with command arguments
     const args = process.argv.slice(2);
     const command = args[0];
     const commandArgs = args.slice(1);
-
-    // Call command
-    if (command === 'add') {
-      // Add new task
-      addTask({ description: commandArgs[0] })
-    } else if (command === 'update') {
-      // Update description for tasks
-      const id = commandArgs[0];
-      updateTask(id, { description: commandArgs[1] });
-    } else if (command === 'mark-todo') {
-      // Update status for task
-      const id = commandArgs[0];
-      updateTask(id, { status: TASK_STATUS.TODO });
-    } else if (command === 'mark-in-progress') {
-      // Update status for task
-      const id = commandArgs[0];
-      updateTask(id, { status: TASK_STATUS.IN_PROGRESS });
-    } else if (command === 'mark-done') {
-      // Update status for task
-      const id = commandArgs[0];
-      updateTask(id, { status: TASK_STATUS.DONE });
-    } else if (command === 'delete') {
-      // Delete task
-      const id = commandArgs[0];
-      deleteTask(id);
-    } else if (command === 'list') {
-      // List all tasks with optional filter
-      listTasks({ status: commandArgs[0] });
-    } else if (command === 'help') {
-      // Show help menu
-      help();
-    } else {
-      // Invalid command
-      throw new Error(`Command not found: ${command}. Use "help" for a list of commands.`);
-    }
+    executeCommand(command, commandArgs);
   } catch (error) {
     // Catch and show all possible errors
     console.log(error.message);
