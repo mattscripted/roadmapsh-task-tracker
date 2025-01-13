@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
+// Constants
 const FILE_ENCODING = 'utf8';
 const TASKS_FILE_PATH = path.join(__dirname, 'tasks.json');
 const TASK_STATUS = {
@@ -12,6 +13,7 @@ const TASK_STATUS = {
 }
 const DEFAULT_TASK_STATUS = TASK_STATUS.TODO;
 
+// state is essentially a database table of tasks with an auto-increment id
 const state = {
   nextTaskId: 1,
   tasksById: {},
@@ -29,20 +31,24 @@ function loadOrCreateFile(filePath, defaultContent = '') {
 function loadOrCreateTasks() {
   const tasksFileContent = loadOrCreateFile(TASKS_FILE_PATH, JSON.stringify(state));
 
+  // Update in-memory state from file contents
   const { nextTaskId, tasksById } = JSON.parse(tasksFileContent);
   state.nextTaskId = nextTaskId;
   state.tasksById = tasksById;
 }
 
 function saveTasks() {
+  // Save in-memory state to file, so it can be read later
   fs.writeFileSync(TASKS_FILE_PATH, JSON.stringify(state), FILE_ENCODING);
 }
 
 function addTask({ description }) {
+  // Validate parameters
   if (!description) {
     throw new Error(`Unable to add task (missing description).`);
   }
 
+  // Create new task
   const { nextTaskId: id } = state;
   const createdAt = new Date();
   state.tasksById[id] = {
@@ -53,6 +59,7 @@ function addTask({ description }) {
     updatedAt: createdAt,
   };
   
+  // Update auto-increment, and save tasks to file
   state.nextTaskId++;
   saveTasks();
 
@@ -60,10 +67,12 @@ function addTask({ description }) {
 }
 
 function updateTask(id, changes) {
+  // Check if tasks exists
   if (!Object.hasOwn(state.tasksById, id)) {
     throw new Error(`Unable to update task (id: ${id} not found).`);
   }
 
+  // Update task with changes, including updatedAt to current timestamp, and save to file
   state.tasksById[id] = {
     ...state.tasksById[id],
     ...changes,
@@ -75,10 +84,12 @@ function updateTask(id, changes) {
 }
 
 function deleteTask(id) {
+  // Check if task exists
   if (!Object.hasOwn(state.tasksById, id)) {
     throw new Error(`Unable to delete task (id: ${id} not found).`);
   }
 
+  // Delete task, and save to file
   delete state.tasksById[id];
   saveTasks();
 
@@ -86,15 +97,20 @@ function deleteTask(id) {
 }
 
 function listTasks(filter = { status: undefined }) {
+  // Convert object of tasks to array of tasks
   const tasks = Object.values(state.tasksById);
+
+  // Filter tasks by status, if provided
   const filteredTasks = filter.status
     ? tasks.filter(task => task.status === filter.status)
     : tasks;
 
+  // Display filtered tasks
   console.log(filteredTasks);
 }
 
 function help() {
+  // Show help menu with all commands
   console.log('Usage: task-cli <command> [options]')
   console.log('Commands:')
   console.group();
@@ -115,45 +131,50 @@ function help() {
 
 function main() {
   try {
-    // Load tasks into memory
+    // Load tasks from file into memory
     loadOrCreateTasks();
   
     // Get arguments
     const args = process.argv.slice(2);
     const command = args[0];
     const commandArgs = args.slice(1);
-  
+
     // Call command
     if (command === 'add') {
+      // Add new task
       addTask({ description: commandArgs[0] })
     } else if (command === 'update') {
-      // Update description
+      // Update description for tasks
       const id = commandArgs[0];
       updateTask(id, { description: commandArgs[1] });
     } else if (command === 'mark-todo') {
-      // Update status
+      // Update status for task
       const id = commandArgs[0];
       updateTask(id, { status: TASK_STATUS.TODO });
     } else if (command === 'mark-in-progress') {
-      // Update status
+      // Update status for task
       const id = commandArgs[0];
       updateTask(id, { status: TASK_STATUS.IN_PROGRESS });
     } else if (command === 'mark-done') {
-      // Update status
+      // Update status for task
       const id = commandArgs[0];
       updateTask(id, { status: TASK_STATUS.DONE });
     } else if (command === 'delete') {
-      // Update status
+      // Delete task
       const id = commandArgs[0];
       deleteTask(id);
     } else if (command === 'list') {
+      // List all tasks with optional filter
       listTasks({ status: commandArgs[0] });
     } else if (command === 'help') {
+      // Show help menu
       help();
     } else {
+      // Invalid command
       throw new Error(`Command not found: ${command}. Use "help" for a list of commands.`);
     }
   } catch (error) {
+    // Catch and show all possible errors
     console.log(error.message);
   }
 }
